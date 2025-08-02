@@ -18,7 +18,7 @@
       <h1 class="ml-4 font-bold text-slate-50 text-2xl py-6">Rabisco Simples</h1>
       <i class="fa-solid fa-x text-white md:hidden!" onclick="toggleMenu()"></i>
     </div>
-    <hr class="-mt-0.5 border-b-1 border-white/10">
+    <hr class="-mt-1 border-b-1 border-white/10">
     <nav class="px-6 py-4">
       <ul id="list" class="text-white flex flex-col gap-4">
         <li>
@@ -29,7 +29,7 @@
     </nav>
   </aside>
   <div id="header-and-main" class="w-full">
-    <header class="w-full h-19.5 flex justify-between md:justify-end bg-linear-to-l from-slate-900 via-slate-950 to-slate-900 items-center px-6 border-b-1 border-white/10">
+    <header class="w-full h-[78px] flex justify-between md:justify-end bg-linear-to-l from-slate-900 via-slate-950 to-slate-900 items-center px-6 border-b-1 border-white/10">
       <button onclick="toggleMenu()" class="block md:hidden text-white">
         <i class="fa-solid fa-bars"></i>
       </button>
@@ -173,9 +173,8 @@
       const taskId = e.target.id;
       const taskStatus = e.target.checked;
 
-      const filteredTask = tasks.filter(task => `task-${task.name}` === taskId);
-
-      if(filteredTask) filteredTask[0].status = taskStatus;
+      const task = tasks.find(t => `task-${t.name}` === taskId);
+      if (task) task.status = taskStatus;
 
       tasks[filteredTask] = filteredTask
 
