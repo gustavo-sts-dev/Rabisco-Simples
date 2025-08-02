@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rabisco Simples</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+    integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="m-0 p-0 box-border flex bg-slate-900 min-h-screen w-full overflow-x-hidden">
+  
+  <aside id="aside" class="w-0 md:w-80 overflow-x-hidden fixed md:relative border-r-1 border-white/10 bg-linear-to-b from-slate-900 via-slate-950 to-slate-900 transition-all
+ duration-1">
+    <div class="flex gap-4 items-center">
+      <h1 class="ml-4 font-bold text-slate-50 text-2xl py-6">Rabisco Simples</h1>
+      <i class="fa-solid fa-x text-white md:hidden!" onclick="toggleMenu()"></i>
+    </div>
+    <hr class="-mt-0.5 border-b-1 border-white/10">
+    <nav class="px-6 py-4">
+      <ul id="list" class="text-white flex flex-col gap-4">
+        <li>
+          A fazer (sem função)
+        </li>
+        <li>Feitas (sem função)</li>
+      </ul>
+    </nav>
+  </aside>
+  <div id="header-and-main" class="w-full">
+    <header class="w-full h-19.5 flex justify-between md:justify-end bg-linear-to-l from-slate-900 via-slate-950 to-slate-900 items-center px-6 border-b-1 border-white/10">
+      <button onclick="toggleMenu()" class="block md:hidden text-white">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="flex items-center gap-4">
+        <div class="text-white flex flex-col justify-center">
+          <span class="text-xl font-bold">User</span>
+          <span class="text-sm">Basic</span>
+        </div>
+        <i class="fa-solid fa-circle-user text-4xl text-white"></i>
+      </div>
+    </header>
+    <main class="p-6">
+      <div>
+        <button onclick="toggleModal()" class="border-1 border-blue-500 rounded-xl text-white flex items-center justify-center px-4 py-2 gap-2"><i class="fa-solid fa-plus"></i> <span class="text-lg font-bold leading-5 text-center align-middle">Criar nova</span></button>
+      </div>
+      <form onsubmit="createTask(event)" id="create-task-form" class="hidden fixed py-4 px-6 top-[50%] left-[50%] -translate-[50%] bg-slate-700 flex flex-col gap-2 rounded-md text-white">
+        <div class="w-full flex justify-between items-center">
+          <span class="font-bold">Nova tarefa</span>
+          <button type="button" class="right-6 border-1 border-red-500 rounded-md text-white flex items-center justify-center px-4 py-2 gap-2" onclick="toggleModal()">
+            <span class="text-lg font-bold leading-5 text-center align-middle">Fechar</span>
+          </button>
+        </div>
+
+        <fieldset class="border-none">
+          <label for="task-name" class="font-medium">Nome da tarefa</label>
+          <input type="text" id="task-name" placeholder="Ex: Reunião" class="w-full border-1 border-white/20 rounded-md p-2 placeholder:text-white">
+        </fieldset>
+        <fieldset class="border-none">
+          <label for="task-date" class="font-medium">Data da tarefa</label>
+          <input type="datetime-local" id="task-date" class="w-full border-1 border-white/20 rounded-md p-2 placeholder:text-white">
+        </fieldset>
+        <fieldset class="border-none">
+          <label for="task-recurrency" class="font-medium">Repetição em dias (opcional)</label>
+          <input type="number" id="task-recurrency" placeholder="Ex: 1" class="w-full border-1 border-white/20 rounded-md p-2 placeholder:text-white">
+        </fieldset>
+
+        <button class="border-1 border-blue-700 rounded-md text-white flex items-center justify-center px-4 py-2 gap-2">
+          <span class="text-lg font-bold leading-5 text-center align-middle">Criar</span>
+        </button>
+      </form>
+      <div class="bg-slate-800 mt-10 w-full min-h-20 rounded-xl">
+        <ul id="tasks">
+          
+        </ul>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    const taskList = document.getElementById('tasks');
+    const navList = document.getElementById('list');
+    const createTaskForm = document.getElementById('create-task-form');
+
+    const taskName = document.getElementById('task-name');
+    const taskDate = document.getElementById('task-date')
+    const taskRecurrency = document.getElementById('task-recurrency');
+    
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+    function createTask (e) {
+      e.preventDefault();
+
+      const newTask = {};
+
+      newTask.name = taskName.value;
+      newTask.date = new Date(taskDate.value).toLocaleString('pt-br');
+      if(taskRecurrency.value) newTask.recurrency = taskRecurrency.value;
+
+      tasks.push(newTask);
+
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+        taskList.innerHTML +=
+          `<li class="flex gap-4 p-4 text-white">
+          <input type="checkbox" name="" id="task-${newTask.name}"> 
+          <div class="flex flex-col">
+            <span class="font-bold">${newTask.name}</span>
+            ${newTask.recurrency ? '<i class="fa-solid fa-repeat"></i>' : ''}
+          </div>
+          <span class="">${newTask.date}</span>
+        </li>`
+
+      createTaskForm.classList.toggle('hidden');
+
+      window.location = '/'
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      tasks.map(task => {
+        const li = document.createElement('li');
+        li.classList = `flex gap-4 p-6 text-white items-center`;
+        li.id = `task-${task.name}`;
+
+        const input = document.createElement('input');
+        input.type = "checkbox"
+        input.checked = task.status;
+        input.onchange = () => updateTask(event);
+        input.id = `task-${task.name}`;
+
+        const div = document.createElement('div');
+        div.classList = `flex flex-col`;
+
+        const spanTaskName = document.createElement('span');
+        spanTaskName.classList = 'font-bold';
+        spanTaskName.innerText = task.name;
+
+        const repeatIcon = document.createElement('i');
+        repeatIcon.classList = ('fa-solid fa-repeat');
+
+        div.append(
+          spanTaskName, 
+          task.recurrency ? repeatIcon
+          : ''
+        )
+        
+        const spanTaskDate = document.createElement('span');
+        spanTaskDate.innerText = task.date;
+        spanTaskDate.classList.remove('font-bold');
+
+        const i = document.createElement('i');
+        i.classList = 'fa-solid fa-trash';
+        i.onclick = () => deleteTask(i);
+
+        li.append(input, div, spanTaskDate, i);
+
+        taskList.append(li)
+      })
+    })
+
+    function toggleModal() {
+      createTaskForm.classList.toggle('hidden')
+    }
+
+    function toggleMenu() {
+      const aside = document.querySelector('#aside');
+        aside.classList.toggle('w-60');
+        aside.classList.toggle('w-0');
+        aside.classList.toggle('min-h-screen');
+      }
+
+    function updateTask(e) {
+      const taskId = e.target.id;
+      const taskStatus = e.target.checked;
+
+      const filteredTask = tasks.filter(task => `task-${task.name}` === taskId);
+
+      if(filteredTask) filteredTask[0].status = taskStatus;
+
+      tasks[filteredTask] = filteredTask
+
+      localStorage.setItem('tasks', JSON.stringify(tasks))
+    }
+
+    function deleteTask(e) {
+      const taskId = e.parentNode.id;
+      
+      console.log('Antes de excluir: ', tasks);
+
+      const indexOfDeletedTask = tasks.findIndex(task => task.name === taskId.split('-')[1]);
+
+      tasks.splice(indexOfDeletedTask, 1);
+
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+
+      window.location = '/';
+    }
+  </script>
+</body>
+</html>
