@@ -41,7 +41,7 @@
         <i class="fa-solid fa-circle-user text-4xl text-white"></i>
       </div>
     </header>
-    <main class="p-6">
+    <main class="p-2 md:p-6">
       <div>
         <button onclick="toggleModal()" class="border-1 border-blue-500 rounded-xl text-white flex items-center justify-center px-4 py-2 gap-2"><i class="fa-solid fa-plus"></i> <span class="text-lg font-bold leading-5 text-center align-middle">Criar nova</span></button>
       </div>
@@ -63,7 +63,7 @@
         </fieldset>
         <fieldset class="border-none">
           <label for="task-recurrency" class="font-medium">Repetição em dias (opcional)</label>
-          <input type="number" id="task-recurrency" placeholder="Ex: 1" class="w-full border-1 border-white/20 rounded-md p-2 placeholder:text-white">
+          <input type="number" min="0" id="task-recurrency" placeholder="Ex: 1" class="w-full border-1 border-white/20 rounded-md p-2 placeholder:text-white">
         </fieldset>
 
         <button class="border-1 border-blue-700 rounded-md text-white flex items-center justify-center px-4 py-2 gap-2">
@@ -84,13 +84,61 @@
     const createTaskForm = document.getElementById('create-task-form');
 
     const taskName = document.getElementById('task-name');
-    const taskDate = document.getElementById('task-date')
+    const taskDate = document.getElementById('task-date');
     const taskRecurrency = document.getElementById('task-recurrency');
     
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    function render() {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        
+        taskList.innerHTML = '';
+
+        if(tasks.length > 0) {
+          
+          tasks.map(task => {
+          const li = document.createElement('li');
+          li.classList = `flex gap-4 p-6 text-white items-center`;
+          li.id = `task-${task.name}`;
+
+          const input = document.createElement('input');
+          input.type = "checkbox"
+          input.checked = task.status;
+          input.onchange = () => updateTask(event);
+          input.id = `task-${task.name}`;
+
+          const div = document.createElement('div');
+          div.classList = `flex flex-col`;
+
+          const spanTaskName = document.createElement('span');
+          spanTaskName.classList = 'font-bold';
+          spanTaskName.innerText = task.name;
+
+          const repeatIcon = document.createElement('i');
+          repeatIcon.classList = ('fa-solid fa-repeat');
+
+          div.append(
+            spanTaskName,
+            task.recurrency ? repeatIcon
+              : ''
+          )
+
+          const spanTaskDate = document.createElement('span');
+          spanTaskDate.innerText = task.date;
+          spanTaskDate.classList.remove('font-bold');
+
+          const i = document.createElement('i');
+          i.classList = 'fa-solid fa-trash';
+          i.onclick = () => deleteTask(i);
+
+          li.append(input, div, spanTaskDate, i);
+
+          taskList.append(li)
+        })}
+      }
 
     function createTask (e) {
       e.preventDefault();
+
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
       const newTask = {};
 
@@ -98,68 +146,33 @@
       newTask.date = new Date(taskDate.value).toLocaleString('pt-br');
       if(taskRecurrency.value) newTask.recurrency = taskRecurrency.value;
 
-      tasks.push(newTask);
+      if(newTask.name) { 
+        tasks.push(newTask); 
+      } 
+      else {
+        alert('Preencha a tarefa com um nome!')
+      }
 
       localStorage.setItem('tasks', JSON.stringify(tasks));
-        taskList.innerHTML +=
-          `<li class="flex gap-4 p-4 text-white">
-          <input type="checkbox" name="" id="task-${newTask.name}"> 
-          <div class="flex flex-col">
-            <span class="font-bold">${newTask.name}</span>
-            ${newTask.recurrency ? '<i class="fa-solid fa-repeat"></i>' : ''}
-          </div>
-          <span class="">${newTask.date}</span>
-        </li>`
+      
+      render()
 
       createTaskForm.classList.toggle('hidden');
-
-      window.location = '/'
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      tasks.map(task => {
-        const li = document.createElement('li');
-        li.classList = `flex gap-4 p-6 text-white items-center`;
-        li.id = `task-${task.name}`;
-
-        const input = document.createElement('input');
-        input.type = "checkbox"
-        input.checked = task.status;
-        input.onchange = () => updateTask(event);
-        input.id = `task-${task.name}`;
-
-        const div = document.createElement('div');
-        div.classList = `flex flex-col`;
-
-        const spanTaskName = document.createElement('span');
-        spanTaskName.classList = 'font-bold';
-        spanTaskName.innerText = task.name;
-
-        const repeatIcon = document.createElement('i');
-        repeatIcon.classList = ('fa-solid fa-repeat');
-
-        div.append(
-          spanTaskName, 
-          task.recurrency ? repeatIcon
-          : ''
-        )
-        
-        const spanTaskDate = document.createElement('span');
-        spanTaskDate.innerText = task.date;
-        spanTaskDate.classList.remove('font-bold');
-
-        const i = document.createElement('i');
-        i.classList = 'fa-solid fa-trash';
-        i.onclick = () => deleteTask(i);
-
-        li.append(input, div, spanTaskDate, i);
-
-        taskList.append(li)
-      })
-    })
+      render()
+    });
 
     function toggleModal() {
-      createTaskForm.classList.toggle('hidden')
+      createTaskForm.classList.toggle('hidden');
+
+      const agora = new Date();
+      const dataHoraMinima = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 16);
+
+      taskDate.min = dataHoraMinima;
     }
 
     function toggleMenu() {
@@ -170,29 +183,31 @@
       }
 
     function updateTask(e) {
-      const taskId = e.target.id;
-      const taskStatus = e.target.checked;
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
-      const task = tasks.find(t => `task-${t.name}` === taskId);
-      if (task) task.status = taskStatus;
+        const taskId = e.target.id;
+        const taskStatus = e.target.checked;
 
-      tasks[filteredTask] = filteredTask
+        const taskIndex = tasks.findIndex(task => `task-${task.name}` === taskId);
 
-      localStorage.setItem('tasks', JSON.stringify(tasks))
-    }
+        if (taskIndex !== -1) {
+          tasks[taskIndex].status = taskStatus;
+          localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+      }
 
     function deleteTask(e) {
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
       const taskId = e.parentNode.id;
-      
-      console.log('Antes de excluir: ', tasks);
 
-      const indexOfDeletedTask = tasks.findIndex(task => task.name === taskId.split('-')[1]);
+      const indexOfTask = tasks.findIndex(task => task.name === taskId.split('-')[1]);
 
-      tasks.splice(indexOfDeletedTask, 1);
+      tasks.splice(indexOfTask, 1);
 
       localStorage.setItem('tasks', JSON.stringify(tasks));
 
-      window.location = '/';
+      render()
     }
   </script>
 </body>
